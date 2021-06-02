@@ -54,13 +54,29 @@
 	function wsEvt() {
 		ws.onopen = function(data){
 			//소켓이 열리면 초기화 세팅하기
-			ws.send('"'+$("#userName").val() +'"'+ "님이 접속하였습니다.")
+// 			ws.send('"'+$("#userName").val() +'"'+ "님이 접속하였습니다.")
 		}
 		
 		ws.onmessage = function(data) {
+			// 메세지 받으면 동작
 			var msg = data.data;
 			if(msg != null && msg.trim() != ''){
-				$("#chating").append("<p>" + msg + "</p>");
+				var d = JSON.parse(msg);
+				if(d.type == "getId"){
+					var si = d.sessionId != null ? d.sessionId : "";
+					if(si != ""){
+						$("#sessionId").val(si);
+					}
+				}else if(d.type == "message"){
+					if(d.sessionId == $("#sessionId").val()){
+						$("#chating").append("<p class='me'>나 : "+d.msg+"</p>");
+					}else{
+						$("#chating").append("<p class='others'>"+d.userName + " : " + d.msg +"</p>");
+					}
+				}else{
+					console.warn();
+				}
+// 				$("#chating").append("<p>" + msg + "</p>");
 			}
 		}
 
@@ -84,14 +100,23 @@
 	}
 
 	function send() {
-		var uN = $("#userName").val();
 		var msg = $("#chatting").val();
+		var option = {
+				type: "message",
+				sessionId: $("#sessionId").val(),
+				userName: $("#userName").val(),
+				msg: $("#chatting").val()
+		};
 		if(msg == null || msg.trim() ==""){
 			return;
 		} else {
-			ws.send(uN+" : "+msg);
+// 			ws.send(uN+" : "+msg);
+			ws.send(JSON.stringify(option));
 			$('#chatting').val("");
 		}
+// 		$('#chatting').val("");
+		
+// 		var uN = $("#userName").val();
 	}
 </script>
 <body>

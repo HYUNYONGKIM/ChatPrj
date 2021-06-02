@@ -2,6 +2,8 @@ package com.hyong.chating.handler;
 
 import java.util.HashMap;
 
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -24,13 +26,14 @@ public class SocketHandler extends TextWebSocketHandler{
 		
 		//받은 메세지를 String에 넣는다. getPayLoad를 통해 message에 포함된 text를 가져올 수 있음.
 		String msg = message.getPayload();
+		JSONObject obj = jsonToObjectParser(msg);
 		//key는 sessionMap의 String부분. 즉 각 유저별 반복문
 		for(String key : sessionMap.keySet()) {
 			// WebSocketSession객체 생성인데...참여한 유저 중 한명씩
 			WebSocketSession wss = sessionMap.get(key);
 			try {
 				// 각 유저한테 sendMessage를 하는데...그것이 msg로 만든 TextMessage객체
-				wss.sendMessage(new TextMessage(msg));
+				wss.sendMessage(new TextMessage(obj.toJSONString()));
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -46,11 +49,18 @@ public class SocketHandler extends TextWebSocketHandler{
 	//WebSocket 객체가 생성되고 그것을 서버에 보내면 이놈이 받아내는 듯
 	//WebSocket 객체가 곧 session이 되고 WebSocketSession인터페이스의 getId()메소드로 Id고유값 얻어서 sessionMap에 저장
 	//이게 곧 한 유저의 세션이 되는 것
+	@SuppressWarnings("unchecked")
 	@Override
 	public void afterConnectionEstablished(WebSocketSession session) throws Exception {
 		// 소켓 연결. 웹소켓 연결이 되면 동작
 		super.afterConnectionEstablished(session);
 		sessionMap.put(session.getId(), session);
+		
+		JSONObject obj = new JSONObject();
+		obj.put("type", "getId");
+		obj.put("sessionId", session.getId());
+		System.out.println(new TextMessage(obj.toJSONString()).getPayload());
+		session.sendMessage(new TextMessage(obj.toJSONString()));
 	}
 	
 	@Override
@@ -58,5 +68,16 @@ public class SocketHandler extends TextWebSocketHandler{
 		// 소켓 종료. 웹소켓이 종료되면 동작
 		sessionMap.remove(session.getId());
 		super.afterConnectionClosed(session, status);
+	}
+	
+	private static JSONObject jsonToObjectParser(String jsonStr) {
+		JSONParser parser = new JSONParser();
+		JSONObject obj = null;
+		try {
+			obj = (JSONObject) parser.parse(jsonStr);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return obj;
 	}
 }
