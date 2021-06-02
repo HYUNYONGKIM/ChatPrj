@@ -32,6 +32,7 @@ public class SocketHandler extends TextWebSocketHandler{
 			// WebSocketSession객체 생성인데...참여한 유저 중 한명씩
 			WebSocketSession wss = sessionMap.get(key);
 			try {
+				System.out.println(new TextMessage(obj.toJSONString()).getPayload());
 				// 각 유저한테 sendMessage를 하는데...그것이 msg로 만든 TextMessage객체
 				wss.sendMessage(new TextMessage(obj.toJSONString()));
 			} catch (Exception e) {
@@ -56,9 +57,11 @@ public class SocketHandler extends TextWebSocketHandler{
 		super.afterConnectionEstablished(session);
 		sessionMap.put(session.getId(), session);
 		
+		// {"sessionId":"be0626ef-3ab7-5523-68c2-831162ef0664","type":"getId"} 이러한 형태를 만들어냄
 		JSONObject obj = new JSONObject();
 		obj.put("type", "getId");
 		obj.put("sessionId", session.getId());
+		System.out.println(session.getId());
 		System.out.println(new TextMessage(obj.toJSONString()).getPayload());
 		session.sendMessage(new TextMessage(obj.toJSONString()));
 	}

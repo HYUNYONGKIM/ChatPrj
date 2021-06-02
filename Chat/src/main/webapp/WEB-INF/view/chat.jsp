@@ -62,11 +62,15 @@
 			var msg = data.data;
 			if(msg != null && msg.trim() != ''){
 				var d = JSON.parse(msg);
+				//맨처음 소켓이 열리면 type이 getId임. 
 				if(d.type == "getId"){
+					//sessionId 입력
 					var si = d.sessionId != null ? d.sessionId : "";
-					if(si != ""){
+					if(si != ''){
 						$("#sessionId").val(si);
 					}
+				//채팅에 메세지 입력하면 JSONObject형태로 바로옴 type은 message
+				//{"msg":"안녕하세요","type":"message","userName":"사용자"}
 				}else if(d.type == "message"){
 					if(d.sessionId == $("#sessionId").val()){
 						$("#chating").append("<p class='me'>나 : "+d.msg+"</p>");
@@ -122,6 +126,7 @@
 <body>
 	<div id="container" class="container">
 		<h1>채팅</h1>
+		<input type="hidden" id="sessionId" value="">
 		<div id="chating" class="chating">
 		</div>
 		
